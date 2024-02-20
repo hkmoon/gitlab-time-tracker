@@ -7,6 +7,7 @@ const Time = require('./time');
 const regex = /added (.*) of time spent(?: at (.*))?/i;
 const subRegex = /subtracted (.*) of time spent(?: at (.*))?/i;
 const removeRegex = /Removed time spent/i;
+const delRegex = /deleted (.*) of spent time from (.*)/i;
 
 /**
  * base model for models that have times
@@ -68,21 +69,26 @@ class hasTimes extends Base {
         });
 
         let promise = this.parallel(this.notes, (note, done) => {
-            let created = moment(note.created_at), match, subMatch;
+            let created = moment(note.created_at), match, subMatch, delMatch;
 
             if ( //
             // filter out user notes
             !note.system ||
             // filter out notes that are no time things
-            !(match = regex.exec(note.body)) && !(subMatch = subRegex.exec(note.body)) && !removeRegex.exec(note.body)
+            !(match = regex.exec(note.body)) && !(subMatch = subRegex.exec(note.body)) && !(delMatch = delRegex.exec(note.body)) && !removeRegex.exec(note.body)
             ) return done();
 
             // change created date when explicitly defined
             if(match && match[2]) created = moment(match[2]);
             if(subMatch && subMatch[2]) created = moment(subMatch[2]);
+            if(delMatch && delMatch[2]) created = moment(delMatch[2]);
+
+            // collect minus items
+            let minusFlag = subMatch | delMatch;
+            let minusMatch = minusFlag ? subMatch ? subMatch[1] : delMatch ? delMatch[1] : 0 : 0;
 
             // create a time string and a time object
-            let timeString = match ? match[1] : (subMatch ? `-${subMatch[1]}` : `-${Time.toHumanReadable(timeSpent)}`);
+            let timeString = match ? match[1] : (minusMatch ? `-${minusMatch}` : `-${Time.toHumanReadable(timeSpent)}`);
             let time = new Time(null, created, note, this, this.config);
             time.seconds = Time.parse(timeString, 8, 5, 4);
 
