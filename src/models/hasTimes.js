@@ -89,6 +89,7 @@ class hasTimes extends Base {
 
             // create a time string and a time object
             let timeString = match ? match[1] : (minusMatch ? `-${minusMatch}` : `-${Time.toHumanReadable(timeSpent)}`);
+            timeString = delMatch ? minusMatch.startsWith('-') ? minusMatch.replace('-', '') : `-${minusMatch}` : timeString;
             let time = new Time(null, created, note, this, this.config);
             time.seconds = Time.parse(timeString, 8, 5, 4);
 
