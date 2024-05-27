@@ -84,7 +84,7 @@ class hasTimes extends Base {
             if(delMatch && delMatch[2]) created = moment(delMatch[2]);
 
             // collect minus items
-            let minusFlag = subMatch | delMatch;
+            let minusFlag = subMatch || delMatch;
             let minusMatch = minusFlag ? subMatch ? subMatch[1] : delMatch ? delMatch[1] : 0 : 0;
 
             // create a time string and a time object
